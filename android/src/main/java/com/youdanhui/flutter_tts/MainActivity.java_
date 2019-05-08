@@ -1,0 +1,335 @@
+package com.youdanhui.flutter_tts;
+
+import android.Manifest;
+import android.bluetooth.BluetoothDevice;
+import android.content.DialogInterface;
+import android.os.Bundle;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentTransaction;
+import android.widget.TextView;
+
+import com.realsil.sdk.bbpro.BeeProManager;
+import com.realsil.sdk.bbpro.BumblebeeCallback;
+import com.realsil.sdk.bbpro.BumblebeeTool;
+import com.realsil.sdk.bbpro.ConstantParam;
+import com.realsil.sdk.bbpro.core.BeeError;
+import com.realsil.sdk.bbpro.core.protocol.CommandContract;
+import com.realsil.sdk.bbpro.core.protocol.params.ConfigType;
+import com.realsil.sdk.bbpro.core.protocol.params.Parameters;
+import com.realsil.sdk.core.Constants;
+import com.realsil.sdk.core.bluetooth.channel.Channel;
+import com.realsil.sdk.core.logger.WriteLog;
+import com.realsil.sdk.core.logger.ZLogger;
+import com.realsil.sdk.support.base.BaseActivity;
+import com.realsil.sdk.support.utilities.IntentUtils;
+import com.realsil.sdk.support.view.SettingsItem;
+
+import java.util.ArrayList;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+
+/**
+ * @author bingshanguxue
+ */
+public class MainActivity extends BaseActivity {
+
+//    @BindView(R.id.tv_state)
+    TextView tvState;
+//    @BindView(R.id.tv_version)
+    TextView tvVersion;
+//    @BindView(R.id.item_language)
+    SettingsItem itemLanguage;
+
+    private BeeProManager mBeeProManager;
+
+    private BeeProManager getBeeProManager() {
+        if (mBeeProManager == null) {
+            mBeeProManager = BeeProManager.getInstance(this);
+            mBeeProManager.addManagerCallback(mManagerCallback);
+        }
+        return mBeeProManager;
+    }
+
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        ButterKnife.bind(this);
+
+        WriteLog.getInstance().startLog();
+
+        getBeeProManager().startService();
+
+        if (Constants.FLAVOR_HOTFIX.equals(BuildConfig.FLAVOR)) {
+            tvVersion.setText(BuildConfig.VERSION_NAME + "-" + BuildConfig.VERSION_CODE);
+        } else if (Constants.FLAVOR_QC.equals(BuildConfig.FLAVOR)) {
+            tvVersion.setText(BuildConfig.VERSION_NAME + "-" + BuildConfig.VERSION_CODE);
+        } else {
+            tvVersion.setText(BuildConfig.VERSION_NAME);
+        }
+
+        requestPermissions();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        WriteLog.getInstance().restartLog();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        checkState();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        WriteLog.getInstance().stopLog();
+        WriteLog.getInstance().saveHciLog();
+    }
+
+    @Override
+    public ArrayList<String> getRequestPermissions() {
+        ArrayList<String> permissions = new ArrayList<>();
+
+        permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+        permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        permissions.add(Manifest.permission.READ_PHONE_STATE);
+//        permissions.add(Manifest.permission.READ_PHONE_NUMBERS);
+        permissions.add(Manifest.permission.READ_CONTACTS);
+        permissions.add(Manifest.permission.WRITE_CONTACTS);
+        permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+        permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        return permissions;
+    }
+
+    @Override
+    public void onPermissionsGranted() {
+        super.onPermissionsGranted();
+
+        checkTtsApp();
+    }
+
+    private BumblebeeCallback mManagerCallback = new BumblebeeCallback() {
+        @Override
+        public void onServiceConnectionStateChanged(boolean status, BumblebeeTool bbpro) {
+            super.onServiceConnectionStateChanged(status, bbpro);
+            ZLogger.d("status=" + status);
+//            runOnUiThread(() -> checkState());
+        }
+
+        @Override
+        public void onConnectionStateChanged(BluetoothDevice device, int connectType, int state) {
+            super.onConnectionStateChanged(device, connectType, state);
+//            ZLogger.d("device:" + (device != null ? device.getAddress() : "") + ", connectType=" + connectType + ", state=" + state);
+//            runOnUiThread(() -> checkState());
+        }
+
+        @Override
+        public void onReceiveReportLan(byte currentLanuage, byte supportedLanguage) {
+            super.onReceiveReportLan(currentLanuage, supportedLanguage);
+//            runOnUiThread(() -> checkState());
+        }
+
+        @Override
+        public void onAckReceived(int opcode, byte status) {
+            super.onAckReceived(opcode, status);
+            switch (opcode) {
+                case CommandContract.CMD_SET_LANGUAGE:
+//                case CommandContract.CMD_SET_CONFIGURATION:
+//                case CommandContract.CMD_GET_NAME:
+                case CommandContract.CMD_GET_LANGUAGE:
+//                case CommandContract.CMD_GET_STATUS:
+//                case CommandContract.CMD_MMI:
+//                    runOnUiThread(() -> reload());
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+
+    private void checkTtsApp() {
+
+        Observable.create(new ObservableOnSubscribe<Boolean>() {
+
+            @Override
+            public void subscribe(ObservableEmitter<Boolean> emitter) throws Exception {
+                boolean ret = IntentUtils.isAppInstalled(MainActivity.this, "com.realsil.android.bbproapplication");
+                ZLogger.d("com.realsil.android.bbproapplication > " + ret);
+                emitter.onNext(ret);
+            }
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<Boolean>() {
+                    private Disposable mDisposable;
+
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        mDisposable = d;
+                    }
+
+                    @Override
+                    public void onNext(Boolean installed) {
+                        if (installed) {
+                            showAppAlertMessage(getString(R.string.toast_app_conflict));
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+                    }
+                });
+    }
+
+
+    private AlertDialog mAppAlertDialog;
+
+    public void showAppAlertMessage(String message) {
+        if (mAppAlertDialog == null) {
+            mAppAlertDialog = new AlertDialog.Builder(this)
+                    .setPositiveButton(com.realsil.sdk.support.R.string.rtk_ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                            redirect2AndroidDetailsSettings("com.realsil.android.bbproapplication");
+                        }
+                    })
+//                    .setNegativeButton(R.string.rtk_cancel, new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialog, int which) {
+//                            dialog.dismiss();
+//                        }
+//                    })
+                    .create();
+        }
+        mAppAlertDialog.setMessage(message);
+
+        if (!mAppAlertDialog.isShowing()) {
+            mAppAlertDialog.show();
+        }
+    }
+
+    private void checkState() {
+//        try {
+//            cancelProgressBar();
+//            if (getBeeProManager().getCurDevice() != null
+//                    && getBeeProManager().getConnState() == Channel.STATE_CONNECTED) {
+//                tvState.setText(R.string.text_state_connected);
+//                tvState.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.material_green_500));
+////                int curLanguage = SettingsPref.getInstance().getCurrentLanuage();
+////                itemLanguage.setSubTitle(Language.parseLanguageResId(curLanguage));
+////                itemLanguage.setVisibility(View.VISIBLE);
+//            } else {
+//                tvState.setText(R.string.text_state_disconnected);
+//                tvState.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.material_red_500));
+////                itemLanguage.setSubTitle(null);
+////                itemLanguage.setVisibility(View.INVISIBLE);
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            ZLogger.e(e.toString());
+//        }
+    }
+
+//    @OnClick(R.id.item_language)
+    public void setLanguage() {
+        if (!getBeeProManager().isConnected(ConstantParam.TYPE_BR_EDR)) {
+            return;
+        }
+
+//        final Bundle args = new Bundle();
+//        args.putString(SetLanDialogFragment)
+//        SetLanDialogFragment.OnDialogListener mListener = (type, lan) -> {
+////            loadFlag |= LOAD_LANGUAGE;
+////            showProgressBar(R.string.toast_processing);
+////            BeeError ret = BeeProManager.getInstance(this).setLanguage(lan);
+////            if (ret.code != BeeError.SUCCESS) {
+////                loadFlag ^= LOAD_LANGUAGE;
+////                cancelProgressBar();
+////                showShortToast(ret.message);
+////            }
+//        };
+//        SetLanDialogFragment fragment = SetLanDialogFragment.getInstance(null, mListener);
+//        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+//        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+//        fragment.show(ft, SetLanDialogFragment.TAG);
+    }
+
+
+    private static final int LOAD_DEFAULT = 0x1F;
+    private static final int LOAD_NAME = 0x01;
+    private static final int LOAD_CHANNEL = 0x02;
+    private static final int LOAD_AUDIO_PASS_THROUGH = 0x04;
+    private static final int LOAD_LANGUAGE = 0x08;
+
+    private int loadFlag = 0x00;
+
+    private void reload() {
+        ZLogger.v("loadlag=" + loadFlag);
+        if ((loadFlag & LOAD_NAME) == LOAD_NAME) {
+            loadFlag ^= LOAD_NAME;
+            showProgressBar(R.string.toast_processing);
+            BeeError ret = BeeProManager.getInstance(this).getName(ConfigType.BREDR);
+            if (ret.code != BeeError.SUCCESS) {
+                cancelProgressBar();
+                showShortToast(ret.message);
+            }
+            return;
+        }
+        if ((loadFlag & LOAD_LANGUAGE) == LOAD_LANGUAGE) {
+            loadFlag ^= LOAD_LANGUAGE;
+            showProgressBar(R.string.toast_processing);
+            BeeError ret = BeeProManager.getInstance(this).getLanguage();
+            if (ret.code != BeeError.SUCCESS) {
+                cancelProgressBar();
+                showShortToast(ret.message);
+            }
+            return;
+        }
+        if ((loadFlag & LOAD_CHANNEL) == LOAD_CHANNEL) {
+            loadFlag ^= LOAD_CHANNEL;
+            showProgressBar(R.string.toast_processing);
+            BeeError ret = BeeProManager.getInstance(this).getStatus(Parameters.STATUS_INDEX_RWS_CHANNEL);
+            if (ret.code != BeeError.SUCCESS) {
+                cancelProgressBar();
+                showShortToast(ret.message);
+            }
+            return;
+        }
+        if ((loadFlag & LOAD_AUDIO_PASS_THROUGH) == LOAD_AUDIO_PASS_THROUGH) {
+            loadFlag ^= LOAD_AUDIO_PASS_THROUGH;
+            showProgressBar(R.string.toast_processing);
+            BeeError ret = BeeProManager.getInstance(this).getStatus(Parameters.STATUS_INDEX_AUDIO_PASS_THROUGH_STATUS);
+            if (ret.code != BeeError.SUCCESS) {
+                cancelProgressBar();
+                showShortToast(ret.message);
+            }
+            return;
+        }
+    }
+}

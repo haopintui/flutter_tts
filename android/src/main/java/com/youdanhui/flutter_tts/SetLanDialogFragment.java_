@@ -1,0 +1,167 @@
+package com.youdanhui.flutter_tts;
+
+import android.app.Dialog;
+import android.content.Context;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.DialogFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.realsil.sdk.bbpro.ConstantParam;
+import com.realsil.sdk.bbpro.model.Language;
+import com.realsil.sdk.bbpro.utilities.SettingsPref;
+import com.realsil.sdk.core.logger.ZLogger;
+import com.realsil.sdk.support.base.BaseRecyclerViewAdapter;
+import com.realsil.sdk.support.view.LineItemDecoration;
+
+import java.util.List;
+
+
+/**
+ * @author jennifer_tian
+ * @date 2018/3/6
+ */
+
+public class SetLanDialogFragment extends DialogFragment {
+    public static final String TAG = "SetLanDialogFragment";
+    private OnDialogListener mOnDialogListener;
+    private RecyclerView mRecyclerView;
+//    private LanguageAdapter mAdapter;
+
+
+    public static SetLanDialogFragment getInstance(Bundle args, SetLanDialogFragment.OnDialogListener listener) {
+        final SetLanDialogFragment fragment = new SetLanDialogFragment();
+        if (args != null) {
+            fragment.setArguments(args);
+        }
+        fragment.mOnDialogListener = listener;
+        return fragment;
+    }
+
+
+    public interface OnDialogListener {
+        /**
+         * @param type
+         * @param lan
+         */
+        void onListViewItemClick(int type, byte lan);
+    }
+
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+//        Bundle args = getArguments();
+//        if (args != null) {
+//            previousName = args.getString(EXTRA_KEY_PREVIOUS_NAME);
+//        }
+    }
+
+
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+
+        final View dialogView = LayoutInflater.from(getActivity()).inflate(R.layout.dialogview_set_language, null);
+
+        mRecyclerView = dialogView.findViewById(R.id.listview);
+
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+//        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        mRecyclerView.setLayoutManager(linearLayoutManager);
+        //enable optimizations if all item views are of the same height and width for
+        //signficantly smoother scrolling
+        mRecyclerView.setHasFixedSize(true);
+        //添加分割线
+        mRecyclerView.addItemDecoration(new LineItemDecoration(
+                getContext(), LineItemDecoration.VERTICAL_LIST, 8));
+
+        ZLogger.v("currentLanguage: " + SettingsPref.getInstance().getCurrentLanuage());
+        ZLogger.v("supportedLanguage: " + SettingsPref.getInstance().getSupportedLanuage());
+//        mAdapter = new LanguageAdapter(getContext(), Language.getSupportedLanguages(SettingsPref.getInstance().getSupportedLanuage()));
+//        mAdapter.setOnAdapterListener(new LanguageAdapter.OnAdapterListener() {
+//            @Override
+//            public void onItemClick(Language language) {
+//                if (language != null && mOnDialogListener != null) {
+//                    mOnDialogListener.onListViewItemClick(ConstantParam.TYPE_BR_EDR, language.value);
+//                }
+//
+//                dismiss();
+//            }
+//
+//            @Override
+//            public void onDataSetChanged() {
+//
+//            }
+//        });
+
+//        mRecyclerView.setAdapter(mAdapter);
+
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        return builder.setView(dialogView)
+//                .setTitle(R.string.title_set_lan)
+                .create();
+    }
+
+//    private static class LanguageAdapter extends BaseRecyclerViewAdapter<Language, LanguageAdapter.LanguageViewHolder> {
+//
+////        public class LanguageViewHolder extends RecyclerView.ViewHolder {
+////            private TextView tvName;
+////
+//////            public LanguageViewHolder(final View itemView) {
+//////                super(itemView);
+//////                tvName = itemView.findViewById(R.id.name);
+//////
+//////                itemView.setOnClickListener(v -> {
+//////                    int position = getAdapterPosition();
+//////                    Language language = getEntity(position);
+//////                    if (language == null) {
+//////                        return;
+//////                    }
+//////
+//////                    if (adapterListener != null) {
+//////                        adapterListener.onItemClick(language);
+//////                    }
+//////                });
+//////            }
+////        }
+//
+//        public interface OnAdapterListener {
+//            void onItemClick(Language language);
+//
+//            void onDataSetChanged();
+//        }
+//
+//        private OnAdapterListener adapterListener;
+//
+//        public void setOnAdapterListener(OnAdapterListener listener) {
+//            adapterListener = listener;
+//        }
+//
+//        public LanguageAdapter(Context context, List<Language> entities) {
+//            super(context, entities);
+//        }
+//
+////        @Override
+////        public LanguageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+////            return new LanguageViewHolder(mLayoutInflater.inflate(R.layout.itemview_tts_language,
+////                    parent, false));
+////        }
+//
+//        @Override
+//        public void onBindViewHolder(final LanguageViewHolder holder, final int position) {
+//            Language language = getEntity(position);
+//
+//            holder.tvName.setText(language.resId);
+//        }
+//
+//    }
+
+}

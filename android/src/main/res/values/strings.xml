@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">TTS</string>
+
+    <string name="toast_fail_to_permisson">Fail to obtain permissions</string>
+
+    <string name="text_state_connected">(Connected)</string>
+    <string name="text_state_connecting">(Connecting)</string>
+    <string name="text_state_disconnecting">(Disconnecting)</string>
+    <string name="text_state_disconnected">(Disconnected)</string>
+
+    <string name="title_settings_language">Launguage</string>
+    <string name="toast_processing">Processing &#8230;</string>
+    <string name="title_set_lan">Set Language</string>
+    <string name="toast_app_conflict">It is detected that the BBProTool App has been installed on the phone. To ensure the stabiliby of use, please uninstall the BBProTool App first</string>
+
+</resources>

@@ -1,0 +1,110 @@
+package com.youdanhui.flutter_tts;
+
+import android.content.Intent;
+import android.content.res.Configuration;
+
+import androidx.core.content.ContextCompat;
+
+import com.realsil.sdk.bbpro.BeeProManager;
+import com.realsil.sdk.bbpro.BumblebeeCallback;
+import com.realsil.sdk.bbpro.BumblebeeService;
+import com.realsil.sdk.bbpro.BumblebeeTool;
+import com.realsil.sdk.bbpro.RtkBbpro;
+import com.realsil.sdk.bbpro.tts.TtsManager;
+import com.realsil.sdk.core.logger.WriteLog;
+import com.realsil.sdk.core.logger.ZLogger;
+import com.realsil.sdk.support.RealtekApplication;
+import com.realsil.sdk.support.utilities.PluginsManager;
+import com.realsil.sdk.tts.baidu.BaiduTtsEngine;
+
+import java.util.Locale;
+
+
+/**
+ * @author iris_wang
+ * @date 2017/4/13
+ */
+public class TtsApplication extends RealtekApplication {
+    private final static String TAG = "TtsApplication";
+    private final static boolean D = true;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        ZLogger.d(D, "initial");
+        //        GlobalGatt.initial(this);
+//        RtkCore.init(this);
+//        RtkDfu.initialize(this);
+
+        ZLogger.initialize("Tts", true);
+//        ZLogger.LOG_LEVEL = 5;
+
+        WriteLog.install(this, "Tts", 2);
+
+        BumblebeeTool.transmitClass(MainActivity.class);
+//        BeeProManager.SERVER_ROLE_ENABLED = true;
+        BeeProManager.SERVICE_MODE = BumblebeeService.MODE_AUTO_CONNECT_WHEN_START;
+        BeeProManager.CLIENT_AUTO_CONNECT_SPP_ENABLED = true;
+        BeeProManager.MODULE_SUPPORTED = BeeProManager.MODULE_TTS;
+
+        RtkBbpro.initialize(this);
+//        RtkBbpro.configIflytek(this, "59f3f3f7");
+
+        ZLogger.d(true, String.format(Locale.US, "{\nAPPLICATION_ID=%s\nVERSION=%s-%d\nDEBUG=%b\nBUILD_TYPE=%s\nFLAVOR=%s\n}",
+                BuildConfig.APPLICATION_ID, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE,
+                BuildConfig.DEBUG, BuildConfig.BUILD_TYPE, BuildConfig.FLAVOR));
+
+        int pid = android.os.Process.myPid();
+        String processAppName = getProcessName(this, pid);
+        ZLogger.v("process: " + processAppName);
+        // 如果app启用了远程的service，此application:onCreate会被调用2次
+        // 默认的app会在以包名为默认的process name下运行，如果查到的process name不是app的process name就立即返回
+        if (processAppName != null && processAppName.equalsIgnoreCase(getPackageName())) {
+            PluginsManager.configBugly(this, BuildConfig.FLAVOR, "2bc4b5d81f");
+
+            BaiduTtsEngine.configTts("11723798", "W4wd4wU05ebBRPgAeZl9M1ey", "73wHt8Mo7m6pL9XAXoOof5oHR4OSZYfq");
+            TtsManager.getInstance(this).setTtsEngine(new BaiduTtsEngine(this));
+
+            //get the BumblebeeTool proxy , get mBumblebeeTool through callback
+            BeeProManager.getInstance(this).addManagerCallback(mBumblebeeCallback);
+        }
+
+    }
+
+    private BumblebeeCallback mBumblebeeCallback = new BumblebeeCallback() {
+        @Override
+        public void onServiceConnectionStateChanged(boolean status, BumblebeeTool bbpro) {
+            super.onServiceConnectionStateChanged(status, bbpro);
+            ZLogger.v("status=" + status);
+
+        }
+
+    };
+
+    @Override
+    public void onEnterBankground() {
+        super.onEnterBankground();
+        ZLogger.d(D, "background: restart BumblebeeService");
+        Intent service = new Intent(getApplicationContext(), BumblebeeService.class);
+        ContextCompat.startForegroundService(getApplicationContext(), service);
+    }
+
+
+    @Override
+    public void onTrimMemory(int level) {
+        // 程序在内存清理的时候执行
+        ZLogger.d(D, "onTrimMemory");
+
+        super.onTrimMemory(level);
+
+        ZLogger.d(D, "restart BumblebeeService");
+        Intent service = new Intent(getApplicationContext(), BumblebeeService.class);
+        ContextCompat.startForegroundService(this, service);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        ZLogger.d(D, "onConfigurationChanged");
+        super.onConfigurationChanged(newConfig);
+    }
+}

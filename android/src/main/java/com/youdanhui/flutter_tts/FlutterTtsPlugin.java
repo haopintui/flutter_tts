@@ -203,43 +203,43 @@ public class FlutterTtsPlugin implements MethodCallHandler {
     return false;
   }
 
-  public boolean onKeyDown(int var1, KeyEvent var2) {
-    if (this.isBackpressInterrupted() && var1 == 4 && var2.getAction() == 0) {
-      AlertDialog.Builder var3 = new AlertDialog.Builder(registrar.context());
-      var3.setMessage(string.rtk_message_exit_app);
-      var3.setPositiveButton(string.rtk_ok, (var1x, var2x) -> {
-        registrar.activity().finish();
-      });
-      var3.setNegativeButton(string.rtk_cancel, (DialogInterface.OnClickListener)null);
-      var3.create();
-      var3.show();
-    }
+//  public boolean onKeyDown(int var1, KeyEvent var2) {
+//    if (this.isBackpressInterrupted() && var1 == 4 && var2.getAction() == 0) {
+//      AlertDialog.Builder var3 = new AlertDialog.Builder(registrar.context());
+//      var3.setMessage(string.rtk_message_exit_app);
+//      var3.setPositiveButton(string.rtk_ok, (var1x, var2x) -> {
+//        registrar.activity().finish();
+//      });
+//      var3.setNegativeButton(string.rtk_cancel, (DialogInterface.OnClickListener)null);
+//      var3.create();
+//      var3.show();
+//    }
+//
+//    return super.onKeyDown(var1, var2);
+//  }
 
-    return super.onKeyDown(var1, var2);
-  }
-
-  protected void onActivityResult(int var1, int var2, Intent var3) {
-    switch(var1) {
-      case 32:
-        this.requestPermissions();
-      case 33:
-      case 34:
-      case 35:
-      default:
-        break;
-      case 36:
-        if (var2 == -1) {
-          BluetoothDevice var4 = (BluetoothDevice)var3.getParcelableExtra("device");
-          byte[] var5 = var3.getByteArrayExtra("scanRecord");
-          SpecScanRecord var6 = SpecScanRecord.parseFromBytes(var5);
-          if (var4 != null) {
-            this.onBtScannerCallback(var4, var6);
-          }
-        }
-    }
-
-    super.onActivityResult(var1, var2, var3);
-  }
+//  protected void onActivityResult(int var1, int var2, Intent var3) {
+//    switch(var1) {
+//      case 32:
+//        this.requestPermissions();
+//      case 33:
+//      case 34:
+//      case 35:
+//      default:
+//        break;
+//      case 36:
+//        if (var2 == -1) {
+//          BluetoothDevice var4 = (BluetoothDevice)var3.getParcelableExtra("device");
+//          byte[] var5 = var3.getByteArrayExtra("scanRecord");
+//          SpecScanRecord var6 = SpecScanRecord.parseFromBytes(var5);
+//          if (var4 != null) {
+//            this.onBtScannerCallback(var4, var6);
+//          }
+//        }
+//    }
+//
+//    super.onActivityResult(var1, var2, var3);
+//  }
 
   public void onBtScannerCallback(BluetoothDevice var1, SpecScanRecord var2) {
   }
@@ -247,20 +247,20 @@ public class FlutterTtsPlugin implements MethodCallHandler {
   public void onPermissionsGranted() {
   }
 
-  public void onPermissionsInsufficient() {
-    AlertDialog var1 = (new Builder(this)).setMessage(this.getString(string.rtksdk_permission_denied, new Object[]{""})).setPositiveButton(string.rtksdk_permission_ok, new DialogInterface.OnClickListener() {
-      public void onClick(DialogInterface var1, int var2) {
-        var1.dismiss();
-        BaseActivity.this.redirect2AndroidDetailsSettings();
-      }
-    }).setNegativeButton(string.rtksdk_permission_cancel, new DialogInterface.OnClickListener() {
-      public void onClick(DialogInterface var1, int var2) {
-        var1.dismiss();
-        BaseActivity.this.finish();
-      }
-    }).create();
-    var1.show();
-  }
+//  public void onPermissionsInsufficient() {
+//    AlertDialog var1 = (new Builder(this)).setMessage(this.getString(string.rtksdk_permission_denied, new Object[]{""})).setPositiveButton(string.rtksdk_permission_ok, new DialogInterface.OnClickListener() {
+//      public void onClick(DialogInterface var1, int var2) {
+//        var1.dismiss();
+//        BaseActivity.this.redirect2AndroidDetailsSettings();
+//      }
+//    }).setNegativeButton(string.rtksdk_permission_cancel, new DialogInterface.OnClickListener() {
+//      public void onClick(DialogInterface var1, int var2) {
+//        var1.dismiss();
+//        BaseActivity.this.finish();
+//      }
+//    }).create();
+//    var1.show();
+//  }
 
   public ArrayList<String> getRequestPermissions() {
     ArrayList var1 = new ArrayList();
@@ -272,33 +272,33 @@ public class FlutterTtsPlugin implements MethodCallHandler {
     return var1;
   }
 
-  public void requestPermissions() {
-    ArrayList var1 = this.getRequestPermissions();
-    ArrayList var2 = new ArrayList();
-    Iterator var3 = var1.iterator();
-
-    while(var3.hasNext()) {
-      String var4 = (String)var3.next();
-      if (ActivityCompat.checkSelfPermission(this, var4) != 0) {
-        ZLogger.d(String.format("权限[%s]未开启", var4));
-        var2.add(var4);
-      }
-    }
-
-    int var6 = var2.size();
-    if (var6 > 0) {
-      String[] var7 = new String[var6];
-
-      for(int var5 = 0; var5 < var6; ++var5) {
-        var7[var5] = (String)var2.get(var5);
-      }
-
-      ActivityCompat.requestPermissions(registrar.activity(), var7, 34);
-    } else {
-      this.onPermissionsGranted();
-    }
-
-  }
+//  public void requestPermissions() {
+//    ArrayList var1 = this.getRequestPermissions();
+//    ArrayList var2 = new ArrayList();
+//    Iterator var3 = var1.iterator();
+//
+//    while(var3.hasNext()) {
+//      String var4 = (String)var3.next();
+//      if (ActivityCompat.checkSelfPermission(this, var4) != 0) {
+//        ZLogger.d(String.format("权限[%s]未开启", var4));
+//        var2.add(var4);
+//      }
+//    }
+//
+//    int var6 = var2.size();
+//    if (var6 > 0) {
+//      String[] var7 = new String[var6];
+//
+//      for(int var5 = 0; var5 < var6; ++var5) {
+//        var7[var5] = (String)var2.get(var5);
+//      }
+//
+//      ActivityCompat.requestPermissions(registrar.activity(), var7, 34);
+//    } else {
+//      this.onPermissionsGranted();
+//    }
+//
+//  }
 
 
 
@@ -320,56 +320,56 @@ public class FlutterTtsPlugin implements MethodCallHandler {
     }
   }
 
-  public void onRequestPermissionsResult(int var1, String[] var2, int[] var3) {
-    if (var1 == 34) {
-      boolean var4 = this.verifyPermissions(var3);
-      if (var4) {
-        this.onPermissionsGranted();
-      } else {
-        this.onPermissionsInsufficient();
-      }
-    } else {
-      super.onRequestPermissionsResult(var1, var2, var3);
-    }
+//  public void onRequestPermissionsResult(int var1, String[] var2, int[] var3) {
+//    if (var1 == 34) {
+//      boolean var4 = this.verifyPermissions(var3);
+//      if (var4) {
+//        this.onPermissionsGranted();
+//      } else {
+//        this.onPermissionsInsufficient();
+//      }
+//    } else {
+//      super.onRequestPermissionsResult(var1, var2, var3);
+//    }
+//
+//  }
+//
+//  public void redirect2EnableBT() {
+//    Intent var1 = new Intent("android.bluetooth.adapter.action.REQUEST_ENABLE");
+//    this.startActivityForResult(var1, 35);
+//  }
+//
+//  public void redirect2AndroidDetailsSettings() {
+//    try {
+//      Intent var1 = new Intent("android.settings.APPLICATION_DETAILS_SETTINGS");
+//      var1.setData(Uri.parse("package:" + this.getPackageName()));
+//      this.startActivityForResult(var1, 32);
+//    } catch (Exception var2) {
+//      ZLogger.e(var2.toString());
+//    }
+//
+//  }
 
-  }
-
-  public void redirect2EnableBT() {
-    Intent var1 = new Intent("android.bluetooth.adapter.action.REQUEST_ENABLE");
-    this.startActivityForResult(var1, 35);
-  }
-
-  public void redirect2AndroidDetailsSettings() {
-    try {
-      Intent var1 = new Intent("android.settings.APPLICATION_DETAILS_SETTINGS");
-      var1.setData(Uri.parse("package:" + this.getPackageName()));
-      this.startActivityForResult(var1, 32);
-    } catch (Exception var2) {
-      ZLogger.e(var2.toString());
-    }
-
-  }
-
-  public void redirect2AndroidDetailsSettings(String var1) {
-    try {
-      Intent var2 = new Intent("android.settings.APPLICATION_DETAILS_SETTINGS");
-      var2.setData(Uri.parse("package:" + var1));
-      this.startActivityForResult(var2, 32);
-    } catch (Exception var3) {
-      ZLogger.e(var3.toString());
-    }
-
-  }
-
-  public void redirect2AndroidBluetoothSettings() {
-    try {
-      Intent var1 = new Intent("android.settings.BLUETOOTH_SETTINGS");
-      this.startActivityForResult(var1, 33);
-    } catch (Exception var2) {
-      ZLogger.e(var2.toString());
-    }
-
-  }
+//  public void redirect2AndroidDetailsSettings(String var1) {
+//    try {
+//      Intent var2 = new Intent("android.settings.APPLICATION_DETAILS_SETTINGS");
+//      var2.setData(Uri.parse("package:" + var1));
+//      this.startActivityForResult(var2, 32);
+//    } catch (Exception var3) {
+//      ZLogger.e(var3.toString());
+//    }
+//
+//  }
+//
+//  public void redirect2AndroidBluetoothSettings() {
+//    try {
+//      Intent var1 = new Intent("android.settings.BLUETOOTH_SETTINGS");
+//      this.startActivityForResult(var1, 33);
+//    } catch (Exception var2) {
+//      ZLogger.e(var2.toString());
+//    }
+//
+//  }
 
   @Override
   public void onMethodCall(MethodCall call, Result result) {
